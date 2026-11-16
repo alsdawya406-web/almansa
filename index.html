@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنصة | حجز أدوار الحل والمتابعة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #050814;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .neon-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.08);
+            backdrop-filter: blur(10px);
+        }
+        .neon-btn {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            transition: all 0.3s ease;
+        }
+        .neon-btn:hover {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.7);
+            transform: translateY(-2px);
+        }
+        .selected-box {
+            border-color: #38bdf8 !important;
+            background: rgba(14, 165, 233, 0.15) !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+        }
+        .input-dark {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            color: #f8fafc;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header -->
+    <header class="border-b border-sky-900/50 bg-slate-950/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-sky-400 animate-ping"></div>
+                <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-sky-400 to-blue-500">
+                    المنصة الذكية
+                </h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchTab('book')" id="tab-book-btn" class="px-4 py-1.5 rounded-lg text-sm font-bold bg-sky-600 text-white shadow-lg shadow-sky-500/30">
+                    حجز جديد
+                </button>
+                <button onclick="switchTab('track')" id="tab-track-btn" class="px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    متابعة طلبي
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl w-full mx-auto px-4 py-8 flex-grow">
+
+        <!-- SECTION 1: NEW BOOKING -->
+        <section id="section-book" class="space-y-6">
+            
+            <!-- Step 1: Grade Selection -->
+            <div class="neon-card rounded-2xl p-6">
+                <h2 class="text-lg font-bold text-sky-400 mb-4 flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-300 w-7 h-7 rounded-full flex items-center justify-center text-sm">1</span>
+                    اختر المرحلة الدراسية
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button type="button" onclick="selectGrade('sec1')" id="btn-sec1" class="p-4 rounded-xl border border-slate-700 bg-slate-900/60 text-center font-bold hover:border-sky-500 transition">
+                        أولى بكالوريا
+                    </button>
+                    <button type="button" onclick="selectGrade('sec2')" id="btn-sec2" class="p-4 rounded-xl border border-slate-700 bg-slate-900/60 text-center font-bold hover:border-sky-500 transition">
+                        تانية بكالوريا
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Subject Selection -->
+            <div id="step-subjects" class="neon-card rounded-2xl p-6 hidden">
+                <h2 class="text-lg font-bold text-sky-400 mb-4 flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-300 w-7 h-7 rounded-full flex items-center justify-center text-sm">2</span>
+                    اختر المواد المطلوب حلها
+                </h2>
+                <div id="subjects-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Dynamic subjects injected here -->
+                </div>
+            </div>
+
+            <!-- Step 3: Choose Solver -->
+            <div id="step-solvers" class="neon-card rounded-2xl p-6 hidden">
+                <h2 class="text-lg font-bold text-sky-400 mb-2 flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-300 w-7 h-7 rounded-full flex items-center justify-center text-sm">3</span>
+                    اختر الشخص اللي هيحل لك
+                </h2>
+                <p class="text-xs text-slate-400 mb-4">الأسعار محسوبة تلقائياً حسب المواد اللي اخترتها</p>
+                
+                <div id="solvers-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center text-slate-400 py-4 col-span-3">جاري تحميل القائمة والأسعار...</div>
+                </div>
+            </div>
+
+            <!-- Step 4: Payment & Student Form -->
+            <form id="booking-form" class="neon-card rounded-2xl p-6 space-y-5 hidden">
+                <h2 class="text-lg font-bold text-sky-400 mb-2 flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-300 w-7 h-7 rounded-full flex items-center justify-center text-sm">4</span>
+                    بيانات الدفع والمنصة
+                </h2>
+
+                <!-- Payment Box -->
+                <div class="bg-sky-950/50 border border-sky-500/40 rounded-xl p-4 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-300">المبلغ المطلوب تحويله:</span>
+                        <span id="display-total-price" class="text-xl font-black text-emerald-400">0 ج.م</span>
+                    </div>
+                    <div class="border-t border-sky-800/50 pt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <div>
+                            <p class="text-xs text-slate-400">رقم فودافون كاش للتحويل:</p>
+                            <p id="display-vf-number" class="text-lg font-bold text-sky-300 tracking-wider select-all">---</p>
+                            <p class="text-xs text-amber-300 mt-0.5">مسجل باسم: <span id="display-vf-name" class="font-bold">---</span></p>
+                        </div>
+                        <button type="button" onclick="copyVfNumber()" class="px-3 py-1.5 bg-sky-600/30 hover:bg-sky-600/50 border border-sky-400/40 rounded-lg text-xs font-bold text-sky-200 self-start sm:self-center">
+                            نسخ الرقم
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Student Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">اسم الطالب بالكامل *</label>
+                        <input type="text" id="studentName" required placeholder="اكتب اسمك ثلاثي" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">رقم الواتساب للتواصل *</label>
+                        <input type="tel" id="phone" required placeholder="01xxxxxxxxx" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">كود المنصة *</label>
+                        <input type="text" id="platformCode" required placeholder="أدخل كود الطالب" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">رمز المنصة (كلمة المرور) *</label>
+                        <input type="text" id="platformPassword" required placeholder="أدخل رمز الدخول" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">المدرسة *</label>
+                        <input type="text" id="school" required placeholder="اسم مدرستك" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">الفصل *</label>
+                        <input type="text" id="classRoom" required placeholder="مثال: 1/3" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">طريقة الدفع *</label>
+                        <select id="paymentMethod" class="w-full px-3 py-2.5 rounded-xl input-dark text-sm">
+                            <option value="دفع عند المقابلة في المدرسة">دفع عند المقابلة في المدرسة</option>
+                            <option value="فودافون كاش">فودافون كاش</option>
+                            <option value="انستا باي">إنستا باي (InstaPay)</option>
+                            <option value="تحويل محفظة أخرى">تحويل محفظة إلكترونية أخرى</option>
+                        </select>
+                    </div>
+                    <div>
+                        <!-- تم إلغاء رفع الصور بناءً على طلبك -->
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full py-3.5 rounded-xl font-black text-white neon-btn text-base">
+                    تأكيد الحجز وإرسال البيانات
+                </button>
+            </form>
+        </section>
+
+        <!-- SECTION 2: TRACKING ORDER -->
+        <section id="section-track" class="space-y-6 hidden">
+            <div class="neon-card rounded-2xl p-6">
+                <h2 class="text-lg font-bold text-sky-400 mb-2">متابعة حالة الطلب المباشرة</h2>
+                <p class="text-xs text-slate-400 mb-4">أدخل كود المتابعة أو رقم الهاتف اللي سجلت بيه</p>
+                <div class="flex gap-2">
+                    <input type="text" id="search-query" placeholder="مثال: ORD-1234 أو رقم الهاتف" class="flex-grow px-4 py-2.5 rounded-xl input-dark text-sm">
+                    <button onclick="searchOrder()" class="px-6 py-2.5 rounded-xl font-bold text-white neon-btn text-sm">
+                        بحث
+                    </button>
+                </div>
+            </div>
+
+            <div id="tracking-results" class="space-y-4"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
+        تم التطوير بواسطة <span class="text-sky-400 font-bold">A.S.Developer</span> &copy; 2026
+    </footer>
+
+    <!-- Firebase & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, onSnapshot, query, where, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpbqseYeh56ExQQiOVE_ef_IniOBp3B6k",
+            authDomain: "almansa-79313.firebaseapp.com",
+            projectId: "almansa-79313",
+            storageBucket: "almansa-79313.firebasestorage.app",
+            messagingSenderId: "805311272322",
+            appId: "1:805311272322:web:fea12fab98f3ef9d87ab9b"
+        };
+
+        const IMGBB_API_KEY = "2c0ab475e054ba927efe0dfc725";
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // State Variables
+        let selectedGrade = "";
+        let selectedSubjects = [];
+        let solversData = {};
+        let selectedSolverId = "";
+        let calculatedTotal = 0;
+
+        // Initialize Default Solvers if DB is empty
+        async function ensureDefaultSolvers() {
+            const snap = await getDocs(collection(db, "solvers"));
+            if (snap.empty) {
+                const defaults = [
+                    { id: "solver_1", name: "المسؤول الأول (أحمد)", vodafoneNumber: "01000000001", vodafoneName: "أحمد السعداوي", pinCode: "1111", isAvailable: true, prices: { sec1_js: 50, sec2_js: 50, sec2_py: 60, sec2_fin: 40 } },
+                    { id: "solver_2", name: "المسؤول الثاني", vodafoneNumber: "01000000002", vodafoneName: "الاسم الثاني", pinCode: "2222", isAvailable: true, prices: { sec1_js: 50, sec2_js: 50, sec2_py: 60, sec2_fin: 40 } },
+                    { id: "solver_3", name: "المسؤول الثالث", vodafoneNumber: "01000000003", vodafoneName: "الاسم الثالث", pinCode: "3333", isAvailable: true, prices: { sec1_js: 50, sec2_js: 50, sec2_py: 60, sec2_fin: 40 } }
+                ];
+                for (const s of defaults) {
+                    const { id, ...data } = s;
+                    await setDoc(doc(db, "solvers", id), data);
+                }
+            }
+        }
+
+        // Listen to Solvers in real-time
+        ensureDefaultSolvers().then(() => {
+            onSnapshot(collection(db, "solvers"), (snapshot) => {
+                solversData = {};
+                snapshot.forEach(docSnap => {
+                    solversData[docSnap.id] = docSnap.data();
+                });
+                if (selectedSubjects.length > 0) renderSolvers();
+            });
+        });
+
+        // UI Navigation
+        window.switchTab = (tab) => {
+            document.getElementById('section-book').classList.toggle('hidden', tab !== 'book');
+            document.getElementById('section-track').classList.toggle('hidden', tab !== 'track');
+            
+            document.getElementById('tab-book-btn').className = tab === 'book' 
+                ? "px-4 py-1.5 rounded-lg text-sm font-bold bg-sky-600 text-white shadow-lg shadow-sky-500/30"
+                : "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700";
+            
+            document.getElementById('tab-track-btn').className = tab === 'track' 
+                ? "px-4 py-1.5 rounded-lg text-sm font-bold bg-sky-600 text-white shadow-lg shadow-sky-500/30"
+                : "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700";
+        };
+
+        // Step 1: Select Grade
+        window.selectGrade = (grade) => {
+            selectedGrade = grade;
+            selectedSubjects = [];
+            selectedSolverId = "";
+            
+            document.getElementById('btn-sec1').classList.toggle('selected-box', grade === 'sec1');
+            document.getElementById('btn-sec2').classList.toggle('selected-box', grade === 'sec2');
+            
+            document.getElementById('step-subjects').classList.remove('hidden');
+            document.getElementById('step-solvers').classList.add('hidden');
+            document.getElementById('booking-form').classList.add('hidden');
+
+            const container = document.getElementById('subjects-container');
+            container.innerHTML = "";
+
+            if (grade === 'sec1') {
+                const sub = { key: 'sec1_js', label: 'جافا سكريبت (JavaScript)' };
+                container.innerHTML = `
+                    <button type="button" onclick="toggleSubject('${sub.key}', '${sub.label}', this)" class="selected-box p-3.5 rounded-xl border border-slate-700 bg-slate-900/60 font-bold text-sm text-sky-300">
+                        ✓ ${sub.label}
+                    </button>
+                `;
+                selectedSubjects.push(sub);
+                showSolversStep();
+            } else {
+                const subs = [
+                    { key: 'sec2_py', label: 'بايثون (Python)' },
+                    { key: 'sec2_js', label: 'جافا سكريبت (JavaScript)' },
+                    { key: 'sec2_fin', label: 'الثقافة المالية' }
+                ];
+                subs.forEach(s => {
+                    container.innerHTML += `
+                        <button type="button" onclick="toggleSubject('${s.key}', '${s.label}', this)" class="p-3.5 rounded-xl border border-slate-700 bg-slate-900/60 font-bold text-sm text-slate-200 hover:border-sky-500 transition">
+                            ${s.label}
+                        </button>
+                    `;
+                });
+            }
+        };
+
+        // Step 2: Toggle Subjects
+        window.toggleSubject = (key, label, btn) => {
+            if (selectedGrade === 'sec1') return; // Fixed for sec1
+            
+            const idx = selectedSubjects.findIndex(item => item.key === key);
+            if (idx > -1) {
+                selectedSubjects.splice(idx, 1);
+                btn.classList.remove('selected-box', 'text-sky-300');
+                btn.innerText = label;
+            } else {
+                selectedSubjects.push({ key, label });
+                btn.classList.add('selected-box', 'text-sky-300');
+                btn.innerText = '✓ ' + label;
+            }
+
+            if (selectedSubjects.length > 0) {
+                showSolversStep();
+            } else {
+                document.getElementById('step-solvers').classList.add('hidden');
+                document.getElementById('booking-form').classList.add('hidden');
+            }
+        };
+
+        function showSolversStep() {
+            document.getElementById('step-solvers').classList.remove('hidden');
+            renderSolvers();
+        }
+
+        function renderSolvers() {
+            const list = document.getElementById('solvers-list');
+            list.innerHTML = "";
+            
+            ['solver_1', 'solver_2', 'solver_3'].forEach(id => {
+                const s = solversData[id];
+                if (!s) return;
+
+                let total = 0;
+                selectedSubjects.forEach(sub => {
+                    total += Number(s.prices?.[sub.key] || 0);
+                });
+
+                const isSelected = selectedSolverId === id;
+                const disabledClass = !s.isAvailable ? "opacity-50 pointer-events-none" : "cursor-pointer hover:border-sky-400";
+
+                list.innerHTML += `
+                    <div onclick="chooseSolver('${id}', ${total})" class="p-4 rounded-xl border ${isSelected ? 'selected-box' : 'border-slate-700 bg-slate-900/70'} ${disabledClass} transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="font-bold text-white text-base">${s.name}</h3>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full ${s.isAvailable ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+                                    ${s.isAvailable ? 'متاح الآن' : 'مشغول'}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 mb-3">السعر الإجمالي للمواد المختارة:</p>
+                        </div>
+                        <div class="text-2xl font-black text-sky-400">
+                            ${total} <span class="text-xs font-normal text-slate-300">ج.م</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Step 3: Choose Solver
+        window.chooseSolver = (id, total) => {
+            selectedSolverId = id;
+            calculatedTotal = total;
+            renderSolvers();
+
+            const s = solversData[id];
+            document.getElementById('display-total-price').innerText = `${total} ج.م`;
+            document.getElementById('display-vf-number').innerText = s.vodafoneNumber;
+            document.getElementById('display-vf-name').innerText = s.vodafoneName;
+
+            document.getElementById('booking-form').classList.remove('hidden');
+            document.getElementById('booking-form').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.copyVfNumber = () => {
+            const num = document.getElementById('display-vf-number').innerText;
+            navigator.clipboard.writeText(num);
+            alert("تم نسخ رقم فودافون كاش: " + num);
+        };
+
+// تم إلغاء تحقق الصور
+
+        // Submit Booking
+        document.getElementById('booking-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedSolverId || selectedSubjects.length === 0) return alert("يرجى إكمال الاختيارات أولاً");
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "جاري تسجيل طلبك...";
+
+            try {
+                const trackingCode = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+
+                // Save Order to Firestore
+                await addDoc(collection(db, "orders"), {
+                    trackingCode,
+                    solverId: selectedSolverId,
+                    solverName: solversData[selectedSolverId].name,
+                    grade: selectedGrade === 'sec1' ? 'أولى بكالوريا' : 'تانية بكالوريا',
+                    subjects: selectedSubjects.map(s => s.label),
+                    totalPrice: calculatedTotal,
+                    studentName: document.getElementById('studentName').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    platformCode: document.getElementById('platformCode').value.trim(),
+                    platformPassword: document.getElementById('platformPassword').value.trim(),
+                    school: document.getElementById('school').value.trim(),
+                    classRoom: document.getElementById('classRoom').value.trim(),
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    receiptUrl: "",
+                    status: "pending", // pending | error_credentials | in_progress | completed | rejected
+                    errorMessage: "",
+                    createdAt: serverTimestamp()
+                });
+
+                alert(`تم تسجيل حجزك بنجاح!
+كود المتابعة الخاص بك هو: ${trackingCode}
+احتفظ بالكود أو تابع برقم هاتفك.`);
+                
+                document.getElementById('booking-form').reset();
+                document.getElementById('search-query').value = trackingCode;
+                switchTab('track');
+                searchOrder();
+
+            } catch (err) {
+                console.error(err);
+                alert("حدث خطأ أثناء إرسال الطلب: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "تأكيد الحجز وإرسال البيانات";
+            }
+        });
+
+        // Live Order Tracking
+        let unsubscribeTrack = null;
+        window.searchOrder = () => {
+            const qVal = document.getElementById('search-query').value.trim();
+            if (!qVal) return alert("اكتب كود المتابعة أو رقم الهاتف");
+
+            const resultsDiv = document.getElementById('tracking-results');
+            resultsDiv.innerHTML = `<div class="text-center text-sky-400 py-4">جاري البحث والمزامنة المباشرة...</div>`;
+
+            if (unsubscribeTrack) unsubscribeTrack();
+
+            const isCode = qVal.toUpperCase().startsWith("ORD-");
+            const field = isCode ? "trackingCode" : "phone";
+            const searchVal = isCode ? qVal.toUpperCase() : qVal;
+
+            const q = query(collection(db, "orders"), where(field, "==", searchVal));
+            unsubscribeTrack = onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    resultsDiv.innerHTML = `<div class="neon-card p-6 rounded-2xl text-center text-rose-400 font-bold">لم يتم العثور على طلبات مطابقة لهذا الرقم أو الكود.</div>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML = "";
+                snapshot.forEach(docSnap => {
+                    const order = docSnap.data();
+                    const orderId = docSnap.id;
+                    renderOrderTracker(orderId, order, resultsDiv);
+                });
+            });
+        };
+
+        function renderOrderTracker(orderId, order, container) {
+            let progressPercent = 25;
+            let statusTitle = "مرحلة التأكيد (مراجعة الدفع والبيانات)";
+            let statusColor = "bg-amber-500";
+
+            if (order.status === "error_credentials") {
+                progressPercent = 25;
+                statusTitle = "تنبيه: كود أو رمز المنصة غير صحيح!";
+                statusColor = "bg-rose-500";
+            } else if (order.status === "in_progress") {
+                progressPercent = 65;
+                statusTitle = "تم التأكيد — جاري حل المنصة الآن";
+                statusColor = "bg-sky-500";
+            } else if (order.status === "completed") {
+                progressPercent = 100;
+                statusTitle = "تم الانتهاء من حل المنصة بنجاح 🎉";
+                statusColor = "bg-emerald-500";
+            } else if (order.status === "rejected") {
+                progressPercent = 100;
+                statusTitle = "تم رفض الطلب (يرجى مراجعة الإيصال أو التواصل)";
+                statusColor = "bg-rose-600";
+            }
+
+            let fixBox = "";
+            if (order.status === "error_credentials") {
+                fixBox = `
+                    <div class="mt-4 p-4 rounded-xl bg-rose-950/60 border border-rose-500/50 space-y-3">
+                        <p class="text-sm font-bold text-rose-300">⚠️ رسالة من المسؤول: ${order.errorMessage || "كود المنصة أو الرمز غير صحيح، يرجى التعديل فوراً"}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input type="text" id="fix-code-${orderId}" value="${order.platformCode}" placeholder="كود المنصة الصحيح" class="px-3 py-2 rounded-lg input-dark text-xs">
+                            <input type="text" id="fix-pass-${orderId}" value="${order.platformPassword}" placeholder="رمز المنصة الصحيح" class="px-3 py-2 rounded-lg input-dark text-xs">
+                        </div>
+                        <button onclick="updateCredentials('${orderId}')" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold">
+                            إرسال البيانات المصححة
+                        </button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML += `
+                <div class="neon-card rounded-2xl p-6 space-y-4">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-xs text-slate-400">كود الطلب:</span>
+                            <span class="font-black text-sky-400 mr-1">${order.trackingCode}</span>
+                        </div>
+                        <div class="text-xs text-slate-300">
+                            المسؤول: <span class="font-bold text-white">${order.solverName}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span class="text-white">${statusTitle}</span>
+                            <span class="text-sky-400">${progressPercent}%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                            <div class="${statusColor} h-3 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1.5">
+                            <span>1. التأكيد</span>
+                            <span>2. جاري الحل</span>
+                            <span>3. تم الانتهاء</span>
+                        </div>
+                    </div>
+
+                    ${fixBox}
+
+                    <div class="text-xs text-slate-400 pt-2 border-t border-slate-800/80 flex flex-wrap gap-4">
+                        <span>الطالب: <strong class="text-slate-200">${order.studentName}</strong></span>
+                        <span>المرحلة: <strong class="text-slate-200">${order.grade}</strong></span>
+                        <span>المواد: <strong class="text-slate-200">${order.subjects.join(" + ")}</strong></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.updateCredentials = async (orderId) => {
+            const newCode = document.getElementById(`fix-code-${orderId}`).value.trim();
+            const newPass = document.getElementById(`fix-pass-${orderId}`).value.trim();
+            if (!newCode || !newPass) return alert("يرجى كتابة الكود والرمز");
+
+            await updateDoc(doc(db, "orders", orderId), {
+                platformCode: newCode,
+                platformPassword: newPass,
+                status: "pending",
+                errorMessage: ""
+            });
+            alert("تم إرسال البيانات المصححة للمسؤول بنجاح!");
+        };
+    </script>
+</body>
+</html>
